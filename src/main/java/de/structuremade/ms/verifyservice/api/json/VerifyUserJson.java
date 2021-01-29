@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 @Getter
 @Setter
@@ -13,4 +14,6 @@ public class VerifyUserJson {
     private String code;
     @NotEmpty(message = "Password is required")
     private String password;
+    @NotNull
+    private String email;
 }

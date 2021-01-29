@@ -1,6 +1,5 @@
 package de.structuremade.ms.verifyservice.api.routes;
 
-import com.google.gson.Gson;
 import de.structuremade.ms.verifyservice.api.json.VerifyUserJson;
 import de.structuremade.ms.verifyservice.util.database.entity.User;
 import de.structuremade.ms.verifyservice.util.database.repo.UserRepository;
@@ -20,12 +19,12 @@ import javax.validation.Valid;
 
 @RestController
 @RequestMapping("service/")
-public class UserRoute {
+public class VerifyRoute {
 
     @Autowired
     private UserRepository userRepository;
 
-    private final Logger LOGGER = LoggerFactory.getLogger(UserRoute.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(VerifyRoute.class);
 
     @PutMapping(path = "/verify", produces = "application/json", consumes = "application/json")
     public void verifyUser(@RequestBody @Valid VerifyUserJson userJson, HttpServletResponse response, HttpServletRequest request) {
@@ -38,6 +37,7 @@ public class UserRoute {
             if (user != null) {
                 /*Set all important Data in Userentity and save it into Database*/
                 user.setVerified(true);
+                user.setEmail(userJson.getEmail());
                 user.setPassword(BCrypt.hashpw(userJson.getPassword(), BCrypt.gensalt()));
                 user.setToken(null);
                 userRepository.save(user);
