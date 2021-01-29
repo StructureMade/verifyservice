@@ -27,12 +27,16 @@ public class VerifyRoute {
     private final Logger LOGGER = LoggerFactory.getLogger(VerifyRoute.class);
 
     @PutMapping(path = "/verify", produces = "application/json", consumes = "application/json")
-    public void verifyUser(@RequestBody @Valid VerifyUserJson userJson, HttpServletResponse response, HttpServletRequest request) {
+    public Object verifyUser(@RequestBody @Valid VerifyUserJson userJson, HttpServletResponse response, HttpServletRequest request) {
         /*Method Variables*/
         User user;
         /*End of Variables*/
         try {
             /*Get User by Activationcode*/
+            if (userRepository.existsByEmail(userJson.getEmail())) {
+                response.setStatus(HttpStatus.BAD_REQUEST.value());
+                return null;
+            }
             user = userRepository.findByToken(userJson.getCode());
             if (user != null) {
                 /*Set all important Data in Userentity and save it into Database*/
@@ -42,13 +46,16 @@ public class VerifyRoute {
                 user.setToken(null);
                 userRepository.save(user);
                 response.setStatus(HttpStatus.OK.value());
+                return null;
             } else {
                 LOGGER.info("Code could not found");
                 response.setStatus(HttpStatus.NOT_FOUND.value());
+                return null;
             }
         } catch (Exception e) {
             LOGGER.error("Veriy failed", e.fillInStackTrace());
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            return null;
         }
     }
 }
