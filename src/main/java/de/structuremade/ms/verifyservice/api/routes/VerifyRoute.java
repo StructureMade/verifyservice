@@ -8,24 +8,36 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCrypt;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-
 @RestController
-@RequestMapping("service/")
+@RequestMapping("service/verify")
 public class VerifyRoute {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserRepository userRepo;
 
     private final Logger LOGGER = LoggerFactory.getLogger(VerifyRoute.class);
 
+    @CrossOrigin
+    @GetMapping("/valid/{code}")
+    public void validate(@PathVariable String code, HttpServletResponse response){
+        try {
+            if(userRepo.existsByToken(code)){
+                response.setStatus(HttpStatus.OK.value());
+            }else{
+                response.setStatus(HttpStatus.NOT_FOUND.value());
+            }
+        }catch (Exception e){
+            LOGGER.error("Couldn't validate code", e.fillInStackTrace());
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        }
+    }
+
+    @CrossOrigin
     @PutMapping(path = "/verify", produces = "application/json", consumes = "application/json")
     public Object verifyUser(@RequestBody @Valid VerifyUserJson userJson, HttpServletResponse response, HttpServletRequest request) {
         /*Method Variables*/
@@ -33,18 +45,18 @@ public class VerifyRoute {
         /*End of Variables*/
         try {
             /*Get User by Activationcode*/
-            if (userRepository.existsByEmail(userJson.getEmail())) {
+            if (userRepo.existsByEmail(userJson.getEmail())) {
                 response.setStatus(HttpStatus.BAD_REQUEST.value());
                 return null;
             }
-            user = userRepository.findByToken(userJson.getCode());
+            user = userRepo.findByToken(userJson.getCode());
             if (user != null) {
                 /*Set all important Data in Userentity and save it into Database*/
                 user.setVerified(true);
                 user.setEmail(userJson.getEmail());
                 user.setPassword(BCrypt.hashpw(userJson.getPassword(), BCrypt.gensalt()));
                 user.setToken(null);
-                userRepository.save(user);
+                userRepo.save(user);
                 response.setStatus(HttpStatus.OK.value());
                 return null;
             } else {
