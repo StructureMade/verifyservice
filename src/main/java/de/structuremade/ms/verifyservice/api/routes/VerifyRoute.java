@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.util.Locale;
+
 @RestController
 @RequestMapping("service/verify")
 public class VerifyRoute {
@@ -26,7 +28,7 @@ public class VerifyRoute {
     @GetMapping("/valid/{code}")
     public void validate(@PathVariable String code, HttpServletResponse response){
         try {
-            if(userRepo.existsByToken(code)){
+            if(userRepo.existsByToken(code.toLowerCase())){
                 response.setStatus(HttpStatus.OK.value());
             }else{
                 response.setStatus(HttpStatus.NOT_FOUND.value());
@@ -45,15 +47,15 @@ public class VerifyRoute {
         /*End of Variables*/
         try {
             /*Get User by Activationcode*/
-            if (userRepo.existsByEmail(userJson.getEmail())) {
+            if (userRepo.existsByEmail(userJson.getEmail().toLowerCase())) {
                 response.setStatus(HttpStatus.BAD_REQUEST.value());
                 return null;
             }
-            user = userRepo.findByToken(userJson.getCode());
+            user = userRepo.findByToken(userJson.getCode().toLowerCase());
             if (user != null) {
                 /*Set all important Data in Userentity and save it into Database*/
                 user.setVerified(true);
-                user.setEmail(userJson.getEmail());
+                user.setEmail(userJson.getEmail().toLowerCase());
                 user.setPassword(BCrypt.hashpw(userJson.getPassword(), BCrypt.gensalt()));
                 user.setToken(null);
                 userRepo.save(user);
@@ -65,7 +67,7 @@ public class VerifyRoute {
                 return null;
             }
         } catch (Exception e) {
-            LOGGER.error("Veriy failed", e.fillInStackTrace());
+            LOGGER.error("Verify failed", e.fillInStackTrace());
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             return null;
         }

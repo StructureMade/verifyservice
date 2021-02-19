@@ -10,7 +10,8 @@ spring:
       maximum-pool-size: 4
       max-lifetime: 1800000
   jpa:
-    show-sql: on
+    show-sql: off
+    generate-ddl: off
     properties:
       hibernate:
         default_schema: services
@@ -22,7 +23,7 @@ eureka:
   instance:
     hostname: localhost
   client:
-    fetch-registry: true
+    fetch-registry: false
     register-with-eureka: true
     service-url:
       defaultZone: https://eureka.structuremade.de/eureka/
